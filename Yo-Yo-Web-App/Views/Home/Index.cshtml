@@ -1,7 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
- 
+
 @*<div class="row justify-content-start">
         <div class="col-4">
             One of two columns
@@ -89,21 +89,24 @@
         });
     }
 
-    $("#btnStartTest").click(function () { 
+    $("#btnStartTest").click(function () {
         if (yoyoTestResult.length > 0) {
             var i = 0;                  //  set your counter to 1
             var p = 0;
-            nextShuttleCalculator(p);
+            var shuttleTime = yoyoTestResult[i].levelTime;
+            var commulativeTime = yoyoTestResult[i].commulativeTime;
             totalTimeCalculator(p);
-            myLoop(i);
-            //for (var i = 0; i < yoyoTestResult.length; i++) {
-            //    console.log(yoyoTestResult[i]);
-            //}
-        } 
+            myLoop(i); 
+            nextShuttleCalculator(shuttleTime);
+        }
 
-        function nextShuttleCalculator(p) {
-            setInterval(function () {
-                p += 0.01;
+        function nextShuttleCalculator(shuttleTime) {
+            var p = shuttleTime;
+            var timer = setInterval(function () {
+                p -= 0.01;
+                if (p <= 0) {
+                    clearInterval(timer);
+                }
                 $("#nextShuttle").text(p.toFixed(2));
             }, 10);
         }
@@ -115,18 +118,18 @@
             }, 10);
         }
 
-        function myLoop(i) {
-            var shuttleTime = yoyoTestResult[i].levelTime;
-            var commulativeTime = yoyoTestResult[i].commulativeTime;
-                //  create a loop function
-                setTimeout(function () {   //  call a 3s setTimeout when the loop is called
-                    console.log('timedelay: ' + yoyoTestResult[i].levelTime);   //  your code here
-                    i++;                    //  increment the counter
-                    if (i < yoyoTestResult.length) {           //  if the counter < 10, call the loop function
-                        myLoop(i);             //  ..  again which will trigger another
-                    }                       //  ..  setTimeout()
-                }, parseFloat(commulativeTime) * 1000)
-            }
+        function myLoop(i) { 
+            setTimeout(function () {
+                console.log('commulativeTime: ' + i + ' ' + yoyoTestResult[i].commulativeTime);
+                i++;
+                if (i < yoyoTestResult.length) {
+                    myLoop(i);
+                }
+                else {
+                    clearTimeout(myLoop());
+                }
+            }, parseFloat(commulativeTime) * 1000)
+        }
     });
 
 
