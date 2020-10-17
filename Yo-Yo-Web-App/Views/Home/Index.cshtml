@@ -1,0 +1,133 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+ 
+@*<div class="row justify-content-start">
+        <div class="col-4">
+            One of two columns
+        </div>
+        <div class="col-4">
+            One of two columns
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-4">
+            One of two columns
+        </div>
+        <div class="col-4">
+            One of two columns
+        </div>
+    </div>
+    <div class="row justify-content-end">
+        <div class="col-4">
+            One of two columns
+        </div>
+        <div class="col-4">
+            One of two columns
+        </div>
+    </div>
+    <div class="row justify-content-around">
+        <div class="col-4">
+            One of two columns
+        </div>
+        <div class="col-4">
+            One of two columns
+        </div>
+    </div>
+    <div class="row justify-content-between">
+        <div class="col-4">
+            One of two columns
+        </div>
+        <div class="col-4">
+            One of two columns
+        </div>
+    </div>*@
+
+<button type="button" id="btnStartTest" title="Click">Start Test</button>
+<div class="row justify-content-center">
+    <div class="col-6">
+        <table class="table-responsive">
+            <thead>
+                <tr>
+                    <th>NEXT <br /> SHUTTLE</th>
+                    <th>TOTAL  <br /> TIME</th>
+                    <th>TOTAL <br /> DISTANCE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span id="nextShuttle"></span></td>
+                    <td><span id="totalTime"></span></td>
+                    <td><span id="totalDistance"></span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script lang="en" type="text/javascript">
+
+    var yoyoTestResult;
+    GetYoyoTest()
+    function GetYoyoTest() {
+
+        $.ajax({
+            type: "GET",
+            traditional: true,
+            async: false,
+            cache: false,
+            url: '/Home/GetYoYoTest',
+            success: function (result) {
+                yoyoTestResult = result;
+                console.log(result);
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+                alert("Error has occurred..");
+            }
+        });
+    }
+
+    $("#btnStartTest").click(function () { 
+        if (yoyoTestResult.length > 0) {
+            var i = 0;                  //  set your counter to 1
+            var p = 0;
+            nextShuttleCalculator(p);
+            totalTimeCalculator(p);
+            myLoop(i);
+            //for (var i = 0; i < yoyoTestResult.length; i++) {
+            //    console.log(yoyoTestResult[i]);
+            //}
+        } 
+
+        function nextShuttleCalculator(p) {
+            setInterval(function () {
+                p += 0.01;
+                $("#nextShuttle").text(p.toFixed(2));
+            }, 10);
+        }
+
+        function totalTimeCalculator(p) {
+            setInterval(function () {
+                p += 0.01;
+                $("#totalTime").text(p.toFixed(2));
+            }, 10);
+        }
+
+        function myLoop(i) {
+            var shuttleTime = yoyoTestResult[i].levelTime;
+            var commulativeTime = yoyoTestResult[i].commulativeTime;
+                //  create a loop function
+                setTimeout(function () {   //  call a 3s setTimeout when the loop is called
+                    console.log('timedelay: ' + yoyoTestResult[i].levelTime);   //  your code here
+                    i++;                    //  increment the counter
+                    if (i < yoyoTestResult.length) {           //  if the counter < 10, call the loop function
+                        myLoop(i);             //  ..  again which will trigger another
+                    }                       //  ..  setTimeout()
+                }, parseFloat(commulativeTime) * 1000)
+            }
+    });
+
+
+</script> 
