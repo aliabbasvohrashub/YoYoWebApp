@@ -2,56 +2,54 @@
     ViewData["Title"] = "Home Page";
 }
 
-@*<div class="row justify-content-start">
-        <div class="col-4">
-            One of two columns
-        </div>
-        <div class="col-4">
-            One of two columns
-        </div>
-    </div>
-    <div class="row justify-content-center">
-        <div class="col-4">
-            One of two columns
-        </div>
-        <div class="col-4">
-            One of two columns
-        </div>
-    </div>
-    <div class="row justify-content-end">
-        <div class="col-4">
-            One of two columns
-        </div>
-        <div class="col-4">
-            One of two columns
-        </div>
-    </div>
-    <div class="row justify-content-around">
-        <div class="col-4">
-            One of two columns
-        </div>
-        <div class="col-4">
-            One of two columns
-        </div>
-    </div>
-    <div class="row justify-content-between">
-        <div class="col-4">
-            One of two columns
-        </div>
-        <div class="col-4">
-            One of two columns
-        </div>
-    </div>*@
+<style type="text/css">
+    .progress-circle span {
+        line-height: 1em;
+        font-size: medium;
+        width: 6em;
+    }
+</style>
+
+<script type="text/javascript">
+    var idVar = setInterval(() => { 
+		timer() 
+	}, 1000);
+
+	function timer() { 
+		var dateVar = new Date(); 
+		var time = dateVar.toLocaleTimeString();  
+		document.getElementById("clock").innerHTML = time;
+	}
+	
+	function myStopFunction() {
+		clearInterval(idVar);
+	}
+</script>
+
+<button onclick="myStopFunction()">Stop the clock</button>
+
+<p id="clock"></p>
+
 
 <button type="button" id="btnStartTest" title="Click">Start Test</button>
+
+<div id="prgTotalTime" style="display:none;" class="progress-circle p10">
+    <span id="spanLevel" style="line-height:4em"></span>
+    <span id="spanShuttleNo" style="line-height:6em"></span>
+    <span id="spanSpeed" style="line-height:8em"></span>
+    <div class="left-half-clipper">
+        <div class="first50-bar"></div>
+        <div class="value-bar"></div>
+    </div>
+</div>
 <div class="row justify-content-center">
     <div class="col-6">
         <table class="table-responsive">
             <thead>
                 <tr>
-                    <th>NEXT <br /> SHUTTLE</th>
-                    <th>TOTAL  <br /> TIME</th>
-                    <th>TOTAL <br /> DISTANCE</th>
+                    <th width="40%">NEXT <br /> SHUTTLE</th>
+                    <th width="40%">TOTAL  <br /> TIME</th>
+                    <th width="40%">TOTAL <br /> DISTANCE</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,7 +69,6 @@
     var yoyoTestResult;
     GetYoyoTest()
     function GetYoyoTest() {
-
         $.ajax({
             type: "GET",
             traditional: true,
@@ -95,40 +92,90 @@
             var p = 0;
             var shuttleTime = yoyoTestResult[i].levelTime;
             var commulativeTime = yoyoTestResult[i].commulativeTime;
+            var speed = yoyoTestResult[i].speed;
+            var shuttleNo = yoyoTestResult[i].shuttleNo;
+            var speedLevel = yoyoTestResult[i].speedLevel;
             totalTimeCalculator(p);
-            myLoop(i); 
-            nextShuttleCalculator(shuttleTime);
+            myLoop(i);
+            showProgressCircle(commulativeTime, speed, shuttleNo, speedLevel);
         }
 
-        function nextShuttleCalculator(shuttleTime) {
-            var p = shuttleTime;
+        function showProgressCircle(commulativeTime, speed, shuttleNo, speedLevel) {
+            var totalSeconds = parseFloat(commulativeTime.toString().substr(0, 2)) * 60 + parseFloat(commulativeTime.toString().substr(3, 5));
+            var p = totalSeconds;
+            clearInterval(timer);
             var timer = setInterval(function () {
-                p -= 0.01;
+
+                p -= 1;
+
                 if (p <= 0) {
                     clearInterval(timer);
                 }
+
                 $("#nextShuttle").text(p.toFixed(2));
-            }, 10);
+
+                var classList = document.getElementById('prgTotalTime').className.split(/\s+/);
+
+                for (var i = 0; i < classList.length; i++) {
+                    if (classList[i] !== 'progress-circle') {
+                        $("#prgTotalTime").removeClass(classList[i]);
+                    }
+                }
+
+                var perc = 100 - (Math.abs(p) * 100 / totalSeconds);
+
+                if (perc > 50) {
+                    $("#prgTotalTime").addClass("over50 p" + Math.round(perc));
+                }
+                else {
+                    $("#prgTotalTime").addClass("p" + Math.round(perc));
+                }
+
+                $("#prgTotalTime").css("display", "block");
+                $("#spanLevel").text("Level " + speedLevel);
+                $("#spanShuttleNo").text("Shuttle" + shuttleNo);
+                $("#spanSpeed").text(speed);
+
+            }, 1000);
         }
 
         function totalTimeCalculator(p) {
+
+            //calculatorInnerFunction(p);
+            //setInterval(calculatorInnerFunction(p), 10);
             setInterval(function () {
                 p += 0.01;
                 $("#totalTime").text(p.toFixed(2));
             }, 10);
         }
 
-        function myLoop(i) { 
+        function calculatorInnerFunction(p) {
+            p += 0.01;
+            $("#totalTime").text(p.toFixed(2));
+        }
+
+
+
+
+        function myLoop(i) {
+            commulativeTime = yoyoTestResult[i].commulativeTime;
+            var speed = yoyoTestResult[i].speed;
+            var shuttleNo = yoyoTestResult[i].shuttleNo;
+            var speedLevel = yoyoTestResult[i].speedLevel;
+            var totalSeconds = parseFloat(commulativeTime.toString().substr(0, 2)) * 60 + parseFloat(commulativeTime.toString().substr(3, 5));
             setTimeout(function () {
                 console.log('commulativeTime: ' + i + ' ' + yoyoTestResult[i].commulativeTime);
                 i++;
                 if (i < yoyoTestResult.length) {
                     myLoop(i);
+                    clearInterval(showProgressCircle(commulativeTime));
+                    showProgressCircle(commulativeTime, speed, shuttleNo, speedLevel);
                 }
                 else {
+                    console.log('clear timeout called');
                     clearTimeout(myLoop());
                 }
-            }, parseFloat(commulativeTime) * 1000)
+            }, parseFloat(totalSeconds) * 1000)
         }
     });
 
