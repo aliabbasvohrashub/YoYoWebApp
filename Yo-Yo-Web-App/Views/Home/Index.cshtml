@@ -11,19 +11,19 @@
 </style>
 
 <script type="text/javascript">
-    var idVar = setInterval(() => { 
-		timer() 
-	}, 1000);
+    var idVar = setInterval(() => {
+        timer()
+    }, 1000);
 
-	function timer() { 
-		var dateVar = new Date(); 
-		var time = dateVar.toLocaleTimeString();  
-		document.getElementById("clock").innerHTML = time;
-	}
-	
-	function myStopFunction() {
-		clearInterval(idVar);
-	}
+    function timer() {
+        var dateVar = new Date();
+        var time = dateVar.toLocaleTimeString();
+        document.getElementById("clock").innerHTML = time;
+    }
+
+    function myStopFunction() {
+        clearInterval(idVar);
+    }
 </script>
 
 <button onclick="myStopFunction()">Stop the clock</button>
@@ -67,7 +67,11 @@
 <script lang="en" type="text/javascript">
 
     var yoyoTestResult;
-    GetYoyoTest()
+    GetYoyoTest();
+    var i = 0;
+    var p = 0;
+    var showProgressTimerArray = [];
+
     function GetYoyoTest() {
         $.ajax({
             type: "GET",
@@ -88,96 +92,87 @@
 
     $("#btnStartTest").click(function () {
         if (yoyoTestResult.length > 0) {
-            var i = 0;                  //  set your counter to 1
-            var p = 0;
-            var shuttleTime = yoyoTestResult[i].levelTime;
-            var commulativeTime = yoyoTestResult[i].commulativeTime;
-            var speed = yoyoTestResult[i].speed;
-            var shuttleNo = yoyoTestResult[i].shuttleNo;
-            var speedLevel = yoyoTestResult[i].speedLevel;
-            totalTimeCalculator(p);
             myLoop(i);
-            showProgressCircle(commulativeTime, speed, shuttleNo, speedLevel);
-        }
-
-        function showProgressCircle(commulativeTime, speed, shuttleNo, speedLevel) {
-            var totalSeconds = parseFloat(commulativeTime.toString().substr(0, 2)) * 60 + parseFloat(commulativeTime.toString().substr(3, 5));
-            var p = totalSeconds;
-            clearInterval(timer);
-            var timer = setInterval(function () {
-
-                p -= 1;
-
-                if (p <= 0) {
-                    clearInterval(timer);
-                }
-
-                $("#nextShuttle").text(p.toFixed(2));
-
-                var classList = document.getElementById('prgTotalTime').className.split(/\s+/);
-
-                for (var i = 0; i < classList.length; i++) {
-                    if (classList[i] !== 'progress-circle') {
-                        $("#prgTotalTime").removeClass(classList[i]);
-                    }
-                }
-
-                var perc = 100 - (Math.abs(p) * 100 / totalSeconds);
-
-                if (perc > 50) {
-                    $("#prgTotalTime").addClass("over50 p" + Math.round(perc));
-                }
-                else {
-                    $("#prgTotalTime").addClass("p" + Math.round(perc));
-                }
-
-                $("#prgTotalTime").css("display", "block");
-                $("#spanLevel").text("Level " + speedLevel);
-                $("#spanShuttleNo").text("Shuttle" + shuttleNo);
-                $("#spanSpeed").text(speed);
-
-            }, 1000);
-        }
-
-        function totalTimeCalculator(p) {
-
-            //calculatorInnerFunction(p);
-            //setInterval(calculatorInnerFunction(p), 10);
-            setInterval(function () {
-                p += 0.01;
-                $("#totalTime").text(p.toFixed(2));
-            }, 10);
-        }
-
-        function calculatorInnerFunction(p) {
-            p += 0.01;
-            $("#totalTime").text(p.toFixed(2));
-        }
-
-
-
-
-        function myLoop(i) {
-            commulativeTime = yoyoTestResult[i].commulativeTime;
-            var speed = yoyoTestResult[i].speed;
-            var shuttleNo = yoyoTestResult[i].shuttleNo;
-            var speedLevel = yoyoTestResult[i].speedLevel;
-            var totalSeconds = parseFloat(commulativeTime.toString().substr(0, 2)) * 60 + parseFloat(commulativeTime.toString().substr(3, 5));
-            setTimeout(function () {
-                console.log('commulativeTime: ' + i + ' ' + yoyoTestResult[i].commulativeTime);
-                i++;
-                if (i < yoyoTestResult.length) {
-                    myLoop(i);
-                    clearInterval(showProgressCircle(commulativeTime));
-                    showProgressCircle(commulativeTime, speed, shuttleNo, speedLevel);
-                }
-                else {
-                    console.log('clear timeout called');
-                    clearTimeout(myLoop());
-                }
-            }, parseFloat(totalSeconds) * 1000)
+            showProgressCircle();
+            totalTimeCalculator();
         }
     });
+
+    function showProgressCircle() {
+        var shuttleTime = yoyoTestResult[i].levelTime;
+        var commulativeTime = yoyoTestResult[i].commulativeTime;
+        var speed = yoyoTestResult[i].speed;
+        var shuttleNo = yoyoTestResult[i].shuttleNo;
+        var speedLevel = yoyoTestResult[i].speedLevel;
+        var totalSeconds = parseFloat(commulativeTime.toString().substr(0, 2)) * 60 + parseFloat(commulativeTime.toString().substr(3, 5));
+        var pTotal = totalSeconds;
+        //killShowProgressCircleInstances();
+        var timer = setInterval(function () {
+            pTotal -= 1;
+            if (pTotal <= 0) {
+                killShowProgressCircleInstances();
+            }
+            $("#nextShuttle").text(pTotal.toFixed(2));
+            var classList = document.getElementById('prgTotalTime').className.split(/\s+/);
+            for (var i = 0; i < classList.length; i++) {
+                if (classList[i] !== 'progress-circle') {
+                    $("#prgTotalTime").removeClass(classList[i]);
+                }
+            }
+
+            var perc = 100 - (Math.abs(pTotal) * 100 / totalSeconds);
+            if (perc > 50) {
+                $("#prgTotalTime").addClass("over50 p" + Math.round(perc));
+            }
+            else {
+                $("#prgTotalTime").addClass("p" + Math.round(perc));
+            }
+
+            $("#prgTotalTime").css("display", "block");
+            $("#spanLevel").text("Level " + speedLevel);
+            $("#spanShuttleNo").text("Shuttle" + shuttleNo);
+            $("#spanSpeed").text(speed);
+
+        }, 1000);
+        
+        showProgressTimerArray.push(timer);
+    }
+
+    function totalTimeCalculator() {
+        setInterval(function () {
+            p += 0.01;
+            $("#totalTime").text(p.toFixed(2));
+        }, 10);
+    }
+
+    function calculatorInnerFunction(p) {
+        p += 0.01;
+        $("#totalTime").text(p.toFixed(2));
+    }
+
+    function myLoop() {
+        commulativeTime = yoyoTestResult[i].commulativeTime;
+        var totalSeconds = parseFloat(commulativeTime.toString().substr(0, 2)) * 60 + parseFloat(commulativeTime.toString().substr(3, 5));
+        setTimeout(function () {
+            console.log('commulativeTime: ' + i + ' ' + yoyoTestResult[i].commulativeTime);
+            i++;
+            if (i < yoyoTestResult.length) {
+                myLoop();
+                killShowProgressCircleInstances();
+                showProgressCircle();
+            }
+            else {
+                console.log('clear timeout called');
+            }
+        }, parseFloat(totalSeconds) * 1000)
+    }
+
+
+    function killShowProgressCircleInstances() {
+        for (var icounter = 0; icounter < showProgressTimerArray.length; icounter++) {
+            clearInterval(showProgressTimerArray[icounter]);
+        }
+    }
 
 
 </script> 
